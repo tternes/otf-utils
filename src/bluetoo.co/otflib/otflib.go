@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func ExportToFile(account Account, path string) (bool, error) {
+func ExportToFile(account *Account, path string) error {
 
 	// --------------------------------------------------------------
 	// = List =
@@ -32,7 +32,7 @@ func ExportToFile(account Account, path string) (bool, error) {
 	if(account.Inbox != nil) {
 		appendList(account.Inbox, &output)
 	}
-	
+
 	for _,list := range account.Lists {
 		appendList(&list, &output)
 	}
@@ -41,10 +41,10 @@ func ExportToFile(account Account, path string) (bool, error) {
 	err := ioutil.WriteFile(path, data, 0644)
 	
 	if(err != nil) {
-		return false, err
+		return err
 	}
 	
-	return true, nil
+	return nil
 }
 
 // Reads the contents of the specified path, returning a boolean for success and the contents of the file as an OTF account

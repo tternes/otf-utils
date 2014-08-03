@@ -19,7 +19,6 @@ func TestAccountExport(t *testing.T) {
 	t.Logf("Account export path: %s", filename)
 	var provider = Provider{ Name:"rawr" }
 
-	lists := []List{}
 	rawr := NewList("rawr")
 	rawrA := NewTask("Something in rawr")
 	rawrB := NewTask("Another thing")
@@ -42,12 +41,14 @@ func TestAccountExport(t *testing.T) {
 	AddTask(inboxTask, inbox)
 	AddTask(inboxCompletedTask, inbox)
 	AddTask(inboxGoldStar, inbox)
+
+	var account = Account{ Provider: provider, Inbox: inbox }
 	
-	lists = append(lists, *rawr, *boom)
-	var account = Account{ Provider: provider, Inbox: inbox, Lists: lists }
+	AddList(rawr, &account)
+	AddList(boom, &account)
 	
-	result, err := ExportToFile(account, filename)
-	if(!result || err != nil) {
+	err := ExportToFile(&account, filename)
+	if(err != nil) {
 		t.Errorf("ExportToFile failed to export to %s", filename)
 		t.Error(err)
 	}

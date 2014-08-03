@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"unicode/utf8"
+	"bluetoo.co/otflib"
 )
 
 var service string
@@ -28,23 +30,34 @@ func main() {
 	otfExport()
 }
 
-func otfExport() bool {
+func otfExport() error {
 	// parameters
-	flag.Parse();
+	flag.Parse()
+	
+	var account otflib.Service;
 	
 	// validation
 	switch service {
 	case "wunderlist":
-	// case "todoist":
+		account = otflib.NewWunderlistAccount(username, password)
+	case "todoist":
+		account = otflib.NewTodoistAccount(username, password)
 	default:
 		exitUsage("invalid service")
-		return false
+		return errors.New("Invalid service")
 	}
 
 	if(utf8.RuneCountInString(username) == 0 || utf8.RuneCountInString(password) == 0) {
 		exitUsage("username / password required")
-		return false
+		return errors.New("Username and password required")
 	}
 
-	return true
+	// load account
+	if(!account.LoadServiceAccount()) {
+		return errors.New("Failed to load service account")
+	}
+	
+	// export
+	err := otflib.ExportToFile(account.GetAccount(), outputPath)
+	return err
 }
