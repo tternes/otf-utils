@@ -11,10 +11,10 @@ The otf-utils suite of utilities are an implementation of the [Open Task Format]
 
 The following services are currently supported by otf-utils:
 
-* [Wunderlist](https://www.wunderlist.com) (export only)
+* [Wunderlist](https://www.wunderlist.com) (in-development)
+* [Todoist](http://todoist.com) (in-development)
 
 Support for additional services is planned (pull requests appreciated):
 
-* [Todoist](http://todoist.com)
 * [Toodledo](http://www.toodledo.com)
 * [Todo.ly](http://todo.ly/ApiWiki/)
