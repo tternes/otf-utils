@@ -7,12 +7,14 @@ import (
 	"errors"
 	"net/url"
 	"io/ioutil"
+	"sort"
 )
 
 var todoistApiUrl string = "https://todoist.com"
 
 // --------------------------------------------------
-
+// Account
+// --------------------------------------------------
 type TodoistAccount struct {
 	account Account
 	tusername string
@@ -25,19 +27,55 @@ type TodoistLoginResponse struct {
 }
 
 type TodoistSyncResponse struct {
-	Projects []TodoistProject
-	Items []TodoistItem
+	Projects TodoistProjects
+	Items TodoistItems
 }
+
+// --------------------------------------------------
+// Project
+// --------------------------------------------------
 
 type TodoistProject struct {
 	Name string
+	Item_order int
 	Id int
 }
+type TodoistProjects []TodoistProject
+
+func (items TodoistProjects) Len() int {
+	return len(items)
+}
+
+func (items TodoistProjects) Less(i, j int) bool {
+	return items[i].Item_order < items[j].Item_order
+}
+
+func (items TodoistProjects) Swap(i, j int) {
+	items[i], items[j] = items[j], items[i]
+}
+
+// --------------------------------------------------
+// Item
+// --------------------------------------------------
 
 type TodoistItem struct {
 	Content string
 	Project_id int
 	Priority int
+	Item_order int
+}
+type TodoistItems []TodoistItem
+
+func (items TodoistItems) Len() int {
+	return len(items)
+}
+
+func (items TodoistItems) Less(i, j int) bool {
+	return items[i].Item_order < items[j].Item_order
+}
+
+func (items TodoistItems) Swap(i, j int) {
+	items[i], items[j] = items[j], items[i]
 }
 
 // --------------------------------------------------
@@ -66,6 +104,11 @@ func (t *TodoistAccount) LoadServiceAccount() bool {
 
 	// fill out the OTF Account with projects/tasks
 	var account = t.GetAccount()
+	
+	// Sort items
+	sort.Sort(syncResp.Projects)
+	sort.Sort(syncResp.Items)
+	
 	for _,project := range syncResp.Projects {
 
 		list := NewList(project.Name)
