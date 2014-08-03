@@ -2,44 +2,53 @@ package main
 
 import (
 	"testing"
+	"io/ioutil"
 	"os"
 )
 
+var tempdir string
+var usernameVar string
+var passwordVar string
+func init() {
+	tempdir,_ = ioutil.TempDir("", "TestAccountExport")
+}
+
+// ------------------------------------------------
+
 func TestWunderlistExport(t *testing.T) {
 
+	usernameVar = "WUNDERLIST_USERNAME"
+	passwordVar = "WUNDERLIST_PASSWORD"
 	service = "wunderlist"
-	username = os.Getenv("WUNDERLIST_USERNAME")
-	password = os.Getenv("WUNDERLIST_PASSWORD")
-	outputPath = "wunderlist_test.txt"
-
-	t.Logf("credentials from environment: '%s' / '%s'", username, password)
+	outputPath = tempdir + "/wunderlist_test.txt"
 	
-	if(len(username) == 0 || len(password) == 0) {
-		t.Skip("Skipping test - required username/password missing")
-		return
-	}
-
-	if(otfExport() == nil) {
-		// ... thumbs up ...
-		t.Log("successfully exported account")
-	} else {
-		t.Error("failed to export wunderlist")
-	}
-
-	// file exists?
-	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
-		t.Errorf("Failed to create output file %s", outputPath)
-	}
-
-	// TODO: attempt to parse exported file
+	commonExportTest(t)
 }
 
 func TestTodoistExport(t *testing.T) {
 
+	usernameVar = "TODOIST_USERNAME"
+	passwordVar = "TODOIST_PASSWORD"
 	service = "todoist"
-	username = os.Getenv("TODOIST_USERNAME")
-	password = os.Getenv("TODOIST_PASSWORD")
-	outputPath = "todoist_test.txt"
+	outputPath = tempdir + "/todoist_test.txt"
+	
+	commonExportTest(t)
+}
+
+// ------------------------------------------------
+
+func commonExportTest(t *testing.T) {
+	
+	username = os.Getenv(usernameVar)
+	password = os.Getenv(passwordVar)
+	
+	t.Logf("Output path: %s", outputPath)
+	t.Logf("credentials from environment: '%s' / '%s'", username, password)
+	
+	if(len(username) == 0 || len(password) == 0) {
+		t.Skip("Skipping test - required username/password missing; set with")
+		return
+	}
 
 	if(otfExport() == nil) {
 		// ... thumbs up ...
@@ -52,5 +61,15 @@ func TestTodoistExport(t *testing.T) {
 		t.Errorf("Failed to create output file %s", outputPath)
 	}
 
-	// TODO: attempt to parse exported file
+	// cat output file to log
+	outputContents, err := ioutil.ReadFile(outputPath)
+	if(err != nil) {
+		t.Errorf("Failed to read output file %s", outputPath)
+	}
+	
+	sFileContents := string(outputContents)
+	t.Logf("---------------- Contents of %s test ----------------", service)
+	t.Log(sFileContents)
+	
+	// TODO: attempt to parse exported file	
 }
