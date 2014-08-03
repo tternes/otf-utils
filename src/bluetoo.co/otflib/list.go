@@ -1,9 +1,6 @@
 package otflib
 
 type List struct {
-	vendor Provider
-	vendorListUid string
-
 	Name string
 	Tasks []Task
 }

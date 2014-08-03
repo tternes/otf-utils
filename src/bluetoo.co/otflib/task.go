@@ -1,9 +1,6 @@
 package otflib
 
 type Task struct {
-	vendor Provider
-	vendorTaskUid string
-	
 	Name string
 	IsCompleted bool
 	IsDeleted bool
