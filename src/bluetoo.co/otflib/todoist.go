@@ -73,6 +73,14 @@ func (t *TodoistAccount) LoadServiceAccount() bool {
 		// locate items matching current project
 		for _,item := range syncResp.Items {
 			task := NewTask(item.Content)
+
+			// Todoist quirk: priority API values are inverted from their web representation
+			switch item.Priority {
+			case 2,3,4:
+				task.SetStarred(true)
+			default:
+				task.SetStarred(false)
+			}
 			
 			if(item.Project_id == project.Id) {
 				AddTask(task, list)				
