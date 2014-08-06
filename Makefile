@@ -36,10 +36,15 @@ clean: $(GO_CLEAN) $(GO_CLEAN_EXTRAS)
 run: export GOPATH = $(shell pwd)
 run:
 	$(GO) run $(GORUN)
-	
+
+ifdef VERBOSE_TESTS
+TEST_ARGS:=-test.v
+else
+TEST_ARGS:=
+endif
 $(GO_TESTS): %_test:
 	@echo [TEST] $*
-	$(GO) test $* -test.v
+	$(GO) test $* $(TEST_ARGS)
 
 $(GO_APPS): %_apps:
 	$(GO) build $*
