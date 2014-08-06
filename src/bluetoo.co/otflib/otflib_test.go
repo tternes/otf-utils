@@ -9,13 +9,75 @@ import (
 var tempdir string
 
 func init() {
-	tempdir,_ = ioutil.TempDir("", "TestAccountExport")
+	tempdir,_ = ioutil.TempDir("", "otflibtest")
+}
+
+func TestAccountImport(t *testing.T) {
+	
+	var filename = tempdir + "/importtest.txt"
+	t.Logf("Account import path: %s", filename)
+
+	// write a temporary file
+	contents := []byte(`
+		= Another List =
+		[ ] Something
+		[X] Completed item
+		[ ] ★ Starred item
+		= Did It All =
+		[X] Yep
+		[X] Oh yeah
+		[X] Boom
+		= Slacker =
+		[ ] One
+		[ ] Two
+		[ ] Three
+		[ ] Four
+		[ ] Five
+		`)
+	err := ioutil.WriteFile(filename, contents, 0644)
+	if(err != nil) {
+		t.Errorf("Failed to write temp file", err)
+	}
+
+	// now import the temp file
+	var account = Account{}
+	err = ImportFromFile(&account, filename)
+	
+	if(len(account.Lists) != 3) {
+		t.Errorf("Invalid number of lists (%d)", len(account.Lists))
+	}
+	
+	taskCount := len(account.Lists[0].Tasks)
+	if(taskCount != 3) {
+		t.Errorf("Invalid number of tasks in first list (%d)", taskCount)
+		t.Error(account)
+	}
+	
+	if(account.Lists[2].Tasks[0].Name != "One") {
+		t.Error("Invalid name in slacker list")
+	}
+
+	// completed
+	if(account.Lists[0].Tasks[1].IsCompleted != true) {
+		t.Error("Failed to parse starred task")
+	}
+	
+	// starred	
+	if(account.Lists[0].Tasks[2].IsStarred != true) {
+		t.Error("Failed to parse starred task")
+	}
+	
+	for _,task := range account.Lists[1].Tasks {
+		if(task.IsCompleted != true) {
+			t.Error("Incomplete task in fully-completed list")	
+		}
+	}
 }
 
 func TestAccountExport(t *testing.T) {
 	
 	// Simple Account
-	var filename = tempdir + "/raw.txt"
+	var filename = tempdir + "/exporttest.txt"
 	t.Logf("Account export path: %s", filename)
 	var provider = Provider{ Name:"rawr" }
 

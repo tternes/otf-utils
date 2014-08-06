@@ -10,12 +10,12 @@ type Provider struct {
 
 type Account struct {
 	Provider Provider
-	Lists []List
+	Lists []*List
 	Inbox *List
 }
 
 func AddList(list *List, account *Account) {
-	account.Lists = append(account.Lists, *list)
+	account.Lists = append(account.Lists, list)
 }
 
 
