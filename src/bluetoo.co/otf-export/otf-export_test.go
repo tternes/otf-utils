@@ -4,6 +4,7 @@ import (
 	"testing"
 	"io/ioutil"
 	"os"
+	"bluetoo.co/otflib"
 )
 
 var tempdir string
@@ -46,14 +47,14 @@ func commonExportTest(t *testing.T) {
 	t.Logf("credentials from environment: '%s' / '%s'", username, password)
 	
 	if(len(username) == 0 || len(password) == 0) {
-		t.Skip("Skipping test - required username/password missing; set with")
+		t.Skip("Skipping test - required username/password missing")
 		return
 	}
 
 	if(otfExport() == nil) {
 		// ... thumbs up ...
 	} else {
-		t.Error("failed to export todoist")
+		t.Error("failed to export account")
 	}
 	
 	// file exists?
@@ -71,5 +72,9 @@ func commonExportTest(t *testing.T) {
 	t.Logf("---------------- Contents of %s test ----------------", service)
 	t.Log(sFileContents)
 	
-	// TODO: attempt to parse exported file	
+	resultAccount := otflib.NewAccount()
+	err = otflib.ImportFromFile(resultAccount, outputPath)
+	if(err!= nil) {
+		t.Error("Failed to import result file successful", err)
+	}
 }
