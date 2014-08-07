@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"io/ioutil"
 	"sort"
+	"strconv"
 )
 
 var todoistApiUrl string = "https://todoist.com"
@@ -87,7 +88,9 @@ func NewTodoistAccount(username string, password string) *TodoistAccount {
 	return &todoistAccount
 }
 
-// interface method
+// --------------------------------------------------
+// interface methods
+// --------------------------------------------------
 func (t *TodoistAccount) LoadServiceAccount() bool {
 
 	if(requestTodoistToken(t) != nil) {
@@ -112,6 +115,9 @@ func (t *TodoistAccount) LoadServiceAccount() bool {
 	for _,project := range syncResp.Projects {
 
 		list := NewList(project.Name)
+		list.VendorListId = strconv.Itoa(project.Id)
+		
+		fmt.Println("Loaded project id, name", list.VendorListId, list.Name)
 		
 		// locate items matching current project
 		for _,item := range syncResp.Items {
@@ -137,9 +143,32 @@ func (t *TodoistAccount) LoadServiceAccount() bool {
 	return true
 }
 
-// interface method
-func (w *TodoistAccount) GetAccount() *Account {
-	return &(w.account)
+func (t *TodoistAccount) GetAccount() *Account {
+	return &(t.account)
+}
+
+func (t *TodoistAccount) AddListToService(l *List) error {
+	err := t.requestAddProject(l)
+	if(err != nil) {
+		return err
+	}
+	
+	for _,task := range l.Tasks {
+		
+		// don't upload completed tasks
+		if(task.IsCompleted == false) {
+			err = t.requestAddTask(task, l)
+			if(err != nil) {
+				return err
+			}			
+		}
+	}
+
+	return nil
+}
+
+func (t *TodoistAccount) RemoveListFromService(l *List) error {
+	return t.requestRemoveProject(l)
 }
 
 // --------------------------------------------------
@@ -186,4 +215,82 @@ func requestTodoistSyncData(t *TodoistAccount) (*TodoistSyncResponse, error) {
 	json.Unmarshal(body, &syncResponse)	
 
 	return &syncResponse, nil
+}
+
+// --------------------------------------------------
+// Projects
+// --------------------------------------------------
+func (t *TodoistAccount)requestAddProject(l *List) error {
+	// API/addProject?name=..&token=..
+
+	v := url.Values{}
+	v.Set("name", l.Name)
+	v.Set("token", t.ttoken)
+
+	addUrl  := todoistApiUrl + fmt.Sprintf("/API/addProject?%s", v.Encode())
+	resp, _ := http.Get(addUrl)
+
+	switch resp.StatusCode {
+	case 200:
+	default:
+		return errors.New("invalid http response code")
+	}
+
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	
+	var resultProject TodoistProject
+	json.Unmarshal(body, &resultProject)
+	
+	l.VendorListId = strconv.Itoa(resultProject.Id)
+
+	return nil
+}
+
+func (t *TodoistAccount)requestRemoveProject(l *List) error {
+	// API/deleteProject?project_id=..&token=..
+
+	v := url.Values{}
+	v.Set("project_id", l.VendorListId)
+	v.Set("token", t.ttoken)
+
+	rmUrl   := todoistApiUrl + fmt.Sprintf("/API/deleteProject?%s", v.Encode())
+	resp, _ := http.Get(rmUrl)
+
+	switch resp.StatusCode {
+	case 200:
+	default:
+		return errors.New("invalid http response code")
+	}
+
+	defer resp.Body.Close()
+
+	return nil
+}
+
+func (t *TodoistAccount)requestAddTask(task *Task, l *List) error {
+
+	v := url.Values{}
+	v.Set("content", task.Name)
+	v.Set("project_id", l.VendorListId)
+	v.Set("token", t.ttoken)
+	
+	if(task.IsStarred) {
+		v.Set("priority", "4")
+	} else {
+		v.Set("priority", "1")
+	}
+
+	rmUrl   := todoistApiUrl + fmt.Sprintf("/API/addItem?%s", v.Encode())
+	resp, _ := http.Get(rmUrl)
+
+	switch resp.StatusCode {
+	case 200:
+	default:
+		return errors.New("invalid http response code")
+	}
+
+	defer resp.Body.Close()
+
+	return nil
 }

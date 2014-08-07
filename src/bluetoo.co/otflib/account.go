@@ -14,6 +14,10 @@ type Account struct {
 	Inbox *List
 }
 
+func NewAccount() *Account {
+	return &Account{}
+}
+
 func AddList(list *List, account *Account) {
 	account.Lists = append(account.Lists, list)
 }

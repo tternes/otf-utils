@@ -75,7 +75,9 @@ func NewWunderlistAccount(username string, password string) *WunderlistAccount {
 	return &WunderlistAccount{ wusername: username, wpassword: password}
 }
 
-// interface method
+// --------------------------------------------------
+// interface methods
+// --------------------------------------------------
 func (w *WunderlistAccount) LoadServiceAccount() bool {
 
 	if(requestWunderlistToken(w) != nil) {
@@ -130,9 +132,16 @@ func (w *WunderlistAccount) LoadServiceAccount() bool {
 	return true
 }
 
-// interface method
 func (w *WunderlistAccount) GetAccount() *Account {
 	return &(w.account)
+}
+
+func (w *WunderlistAccount) AddListToService(l *List) error {
+	return nil
+}
+
+func (w *WunderlistAccount) RemoveListFromService(l *List) error {
+	return nil
 }
 
 // --------------------------------------------------
@@ -141,8 +150,6 @@ func (w *WunderlistAccount) GetAccount() *Account {
 func requestWunderlistToken(w *WunderlistAccount) error {
 	url := wunderlistApiUrl + fmt.Sprintf("/login?email=%s&password=%s", w.wusername, w.wpassword)
 	resp, _ := http.Post(url, "text/json", nil)
-	
-	fmt.Println(resp.Status)
 
 	switch resp.StatusCode {
 	case 200:
@@ -174,8 +181,6 @@ func requestWunderlistLists(w *WunderlistAccount) (*WunderlistLists, error) {
 	req.Header.Set("Content-Type", "text/json")
 	resp, _ := client.Do(req)
 	
-	fmt.Println(resp.Status)
-	
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
 
@@ -203,8 +208,6 @@ func requestWunderlistTasks(w *WunderlistAccount) (*WunderlistTasks,error) {
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", w.wtoken))
 	req.Header.Set("Content-Type", "text/json")
 	resp, _ := client.Do(req)
-	
-	fmt.Println(resp.Status)
 	
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)

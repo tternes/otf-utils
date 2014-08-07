@@ -40,8 +40,8 @@ func TestAccountImport(t *testing.T) {
 	}
 
 	// now import the temp file
-	var account = Account{}
-	err = ImportFromFile(&account, filename)
+	var account = NewAccount()
+	err = ImportFromFile(account, filename)
 	
 	if(len(account.Lists) != 3) {
 		t.Errorf("Invalid number of lists (%d)", len(account.Lists))
